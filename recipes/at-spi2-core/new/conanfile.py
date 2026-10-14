@@ -85,10 +85,16 @@ class AtSpi2CoreConan(ConanFile):
         tc = MesonToolchain(self)
         tc.project_options["introspection"] = "disabled"
         tc.project_options["x11"] = "enabled" if self.options.get_safe("with_x11") else "disabled"
+
         if self.settings.os != "Linux":
-            tc.project_options["atk_only"] = "true"
-            
-        tc.project_options["docs"] = "false"
+            tc.project_options["atk_only"] = True
+        else:
+            tc.pkg_config_path = (
+                f"{self.generators_folder}:"
+                "/usr/lib/x86_64-linux-gnu/pkgconfig:"
+                "/usr/share/pkgconfig")
+
+        tc.project_options["docs"] = False
         tc.generate()
         tc = PkgConfigDeps(self)
         tc.generate()
