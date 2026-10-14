@@ -32,6 +32,7 @@ class CeressolverConan(ConanFile):
         "use_custom_blas": [True, False],
         "use_eigen_sparse": [True, False],
         "use_schur_specializations": [True, False],
+        "miniglog_max_log_level": [-3, -2, -1, 0, 1, 2],
     }
     default_options = {
         "shared": False,
@@ -40,6 +41,9 @@ class CeressolverConan(ConanFile):
         "use_custom_blas": True,
         "use_eigen_sparse": True,
         "use_schur_specializations": True,
+
+        # WARNING and above only
+        "miniglog_max_log_level": -1,
     }
 
     def export_sources(self):
@@ -52,6 +56,9 @@ class CeressolverConan(ConanFile):
     def configure(self):
         if self.options.shared:
             self.options.rm_safe("fPIC")
+
+        if self.options.use_glog:
+            self.options.rm_safe("miniglog_max_log_level")
 
     def layout(self):
         cmake_layout(self, src_folder="src")
@@ -106,6 +113,11 @@ class CeressolverConan(ConanFile):
         # IOS_DEPLOYMENT_TARGET variable was added to iOS.cmake file in 1.12.0 version
         if self.settings.os == "iOS":
             tc.cache_variables["IOS_DEPLOYMENT_TARGET"] = self.settings.os.version
+
+        if not self.options.use_glog:
+            tc.cache_variables["MINIGLOG_MAX_LOG_LEVEL"] = str(
+                self.options.miniglog_max_log_level)
+
         tc.generate()
 
         deps = CMakeDeps(self)
